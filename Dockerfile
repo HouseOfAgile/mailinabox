@@ -37,11 +37,6 @@ RUN useradd -m user-data
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# We want to use Ubuntu's stock rsyslog rather than syslog-ng
-# that the base image provides.
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y rsyslog
-RUN rm -rf /etc/service/syslog-ng
-
 # Install packages needed by Mail-in-a-Box.
 ADD containers/docker/apt_package_list.txt /tmp/mailinabox_apt_package_list.txt
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y $(cat /tmp/mailinabox_apt_package_list.txt)
@@ -49,5 +44,28 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y $(cat /tmp/mailinabox_apt_
 # Now add Mail-in-a-Box to the system.
 ADD . /usr/local/mailinabox
 
-# Cleanup
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Add specific docker files
+ADD containers/docker/tools /usr/local/mailinabox/docker/tools
+ADD containers/docker/patch /usr/local/mailinabox/docker/patch
+
+# Patch setup/functions.sh
+RUN cp /usr/local/mailinabox/setup/functions.sh /usr/local/mailinabox/setup/functions.orig.sh
+RUN echo "# Docker patches" >> /usr/local/mailinabox/setup/functions.sh && \
+	echo "source docker/patch/setup/functions_docker.sh" >> /usr/local/mailinabox/setup/functions.sh
+# Skip apt-get install
+RUN sed 's/PACKAGES=$@/PACKAGES=""/g' -i /usr/local/mailinabox/setup/functions.sh
+
+# Install runit services
+ADD containers/docker/runit/ /etc/service/
+
+# LSB Compatibility
+RUN /usr/local/mailinabox/docker/tools/lsb_compat.sh
+
+# Configure service logs
+RUN /usr/local/mailinabox/docker/tools/runit_logs.sh
+
+# Disable services
+RUN /usr/local/mailinabox/docker/tools/disable_services.sh
+
+# Add my_init scripts
+ADD containers/docker/my_init.d/* /etc/my_init.d/

@@ -37,14 +37,8 @@ function apt_get_quiet {
 }
 
 function apt_install {
-	PACKAGES=$@
-
-	if [ ! -z "$IS_DOCKER" ]; then
-		# Speed things up because packages are already installed by the image.
-		PACKAGES=""
-	fi
-			
 	# Report any packages already installed.
+	PACKAGES=$@
 	TO_INSTALL=""
 	ALREADY_INSTALLED=""
 	for pkg in $PACKAGES; do
@@ -165,7 +159,6 @@ function ufw_allow {
 }
 
 function restart_service {
-	# Restart a service quietly.
 	hide_output service $1 restart
 }
 

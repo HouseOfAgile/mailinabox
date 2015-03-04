@@ -106,3 +106,4 @@ fi
 
 restart_service bind9
 restart_service resolvconf
+restart_service fail2ban

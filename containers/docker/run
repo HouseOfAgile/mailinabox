@@ -85,21 +85,9 @@ docker run \
 	-p 4190:4190 \
 	--name mailinabox-services \
 	--volumes-from mailinabox-userdata \
-	-e "SKIP_NETWORK_CHECKS=$SKIP_NETWORK_CHECKS" \
 	-d \
 	-t \
 	mailinabox
-
-tput setaf 2
-echo
-echo "Initializing container (mailinabox-services)..."
-tput setaf 7
-
-# run init.sh
-docker exec \
-	-it \
-	mailinabox-services \
-	/usr/local/mailinabox/containers/docker/init.sh
 
 tput setaf 2
 echo

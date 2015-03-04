@@ -31,7 +31,7 @@ fi
 
 # ### Configuring ownCloud
 
-OWNCLOUD_CONFIG = /usr/local/lib/owncloud/config/config.php
+OWNCLOUD_CONFIG=/usr/local/lib/owncloud/config/config.php
 
 # Setup ownCloud if the ownCloud database does not yet exist. Running setup when
 # the database does exist wipes the database and user data.
@@ -142,4 +142,5 @@ chmod +x /etc/cron.hourly/mailinabox-owncloud
 
 # Enable PHP modules and restart PHP.
 php5enmod imap
+restart_service memcached
 restart_service php5-fpm
