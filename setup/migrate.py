@@ -90,7 +90,7 @@ def run_migrations():
 	else:
 		# Load the legacy location of the migration ID. We'll drop support
 		# for this eventually.
-		ourver = int(env.get("MIGRATIONID", "0"))
+		ourver = int(env.get("MIGRATIONID", get_current_migration()))
 
 	while True:
 		next_ver = (ourver + 1)
