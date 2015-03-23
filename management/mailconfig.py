@@ -91,19 +91,12 @@ def get_mail_users_ex(env, with_archived=False, with_slow_info=False):
 	#         email: "name@domain.tld",
 	#         privileges: [ "priv1", "priv2", ... ],
 	#         status: "active",
-	#         aliases: [
-	#           ("alias@domain.tld", ["indirect.alias@domain.tld", ...]),
-	#           ...
-	#         ]
 	#       },
 	#       ...
 	#     ]
 	#   },
 	#   ...
 	# ]
-
-	# Pre-load all aliases.
-	aliases = get_mail_alias_map(env)
 
 	# Get users and their privileges.
 	users = []
@@ -121,10 +114,6 @@ def get_mail_users_ex(env, with_archived=False, with_slow_info=False):
 		users.append(user)
 
 		if with_slow_info:
-			user["aliases"] = [
-				(alias, sorted(evaluate_mail_alias_map(alias, aliases, env)))
-				for alias in aliases.get(email.lower(), [])
-				]
 			user["mailbox_size"] = utils.du(os.path.join(env['STORAGE_ROOT'], 'mail/mailboxes', *reversed(email.split("@"))))
 
 	# Add in archived accounts.
@@ -230,21 +219,6 @@ def get_mail_aliases_ex(env):
 		domain["aliases"].sort(key = lambda alias : (alias["required"], alias["source"]))
 	return domains
 
-def get_mail_alias_map(env):
-	aliases = { }
-	for alias, targets in get_mail_aliases(env):
-		for em in targets.split(","):
-			em = em.strip().lower()
-			aliases.setdefault(em, []).append(alias)
-	return aliases
-
-def evaluate_mail_alias_map(email, aliases,  env):
-	ret = set()
-	for alias in aliases.get(email.lower(), []):
-		ret.add(alias)
-		ret |= evaluate_mail_alias_map(alias, aliases, env)
-	return ret
-
 def get_domain(emailaddr):
 	return emailaddr.split('@', 1)[1]
 
@@ -261,8 +235,10 @@ def add_mail_user(email, pw, privs, env):
 	# validate email
 	if email.strip() == "":
 		return ("No email address provided.", 400)
-	if not validate_email(email, mode='user'):
+	elif not validate_email(email):
 		return ("Invalid email address.", 400)
+	elif not validate_email(email, mode='user'):
+		return ("User account email addresses may only use the ASCII letters A-Z, the digits 0-9, underscore (_), hyphen (-), and period (.).", 400)
 
 	validate_password(pw)
 
@@ -291,9 +267,11 @@ def add_mail_user(email, pw, privs, env):
 	# write databasebefore next step
 	conn.commit()
 
-	# Create the user's INBOX, Spam, and Drafts folders, and subscribe them.
-	# K-9 mail will poll every 90 seconds if a Drafts folder does not exist, so create it
-	# to avoid unnecessary polling.
+	# Create & subscribe the user's INBOX, Trash, Spam, and Drafts folders.
+	# * Our sieve rule for spam expects that the Spam folder exists.
+	# * Roundcube will show an error if the user tries to delete a message before the Trash folder exists (#359).
+	# * K-9 mail will poll every 90 seconds if a Drafts folder does not exist, so create it
+	#   to avoid unnecessary polling.
 
 	# Check if the mailboxes exist before creating them. When creating a user that had previously
 	# been deleted, the mailboxes will still exist because they are still on disk.
@@ -304,7 +282,7 @@ def add_mail_user(email, pw, privs, env):
 		conn.commit()
 		return ("Failed to initialize the user: " + e.output.decode("utf8"), 400)
 
-	for folder in ("INBOX", "Spam", "Drafts"):
+	for folder in ("INBOX", "Trash", "Spam", "Drafts"):
 		if folder not in existing_mboxes:
 			utils.shell('check_call', ["doveadm", "mailbox", "create", "-u", email, "-s", folder])
 

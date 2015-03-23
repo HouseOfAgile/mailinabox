@@ -11,11 +11,11 @@
 # If we're not in an interactive shell, set defaults.
 if [ ! -t 0 ]; then
 	echo '*** Non interactive shell detected...'
-	export PUBLIC_IP=auto
-	export PUBLIC_IPV6=auto
-	export PRIMARY_HOSTNAME=auto
-	export CSR_COUNTRY=US
-	export NONINTERACTIVE=1
+	export PUBLIC_IP=`[ -z ${PUBLIC_IP} ] && echo "auto" || echo $PUBLIC_IP`
+	export PUBLIC_IPV6=`[ -z ${PUBLIC_IPV6} ] && echo "auto" || echo $PUBLIC_IPV6`
+	export PRIMARY_HOSTNAME=`[ -z ${PRIMARY_HOSTNAME} ] && echo "auto" || echo $PRIMARY_HOSTNAME`
+	export CSR_COUNTRY=`[ -z ${CSR_COUNTRY} ] && echo "US" || echo $CSR_COUNTRY`
+	export NONINTERACTIVE=`[ -z ${NONINTERACTIVE} ] && echo "1" || echo $NONINTERACTIVE`
 fi
 
 if ([ -z "$FORCE_INSTALL" ] && [ -f /var/lib/mailinabox/api.key ]); then

@@ -19,7 +19,7 @@ FROM phusion/baseimage:0.9.16
 
 # Dockerfile metadata.
 MAINTAINER Joshua Tauberer (http://razor.occams.info)
-EXPOSE 25 53/udp 53/tcp 80 443 587 993 4190
+EXPOSE 25 53/udp 53/tcp 8081 443 587 993 4190
 VOLUME /home/user-data
 
 CMD ["/sbin/my_init"]
@@ -34,6 +34,7 @@ RUN useradd -m user-data
 # of the image extremely fast.
 
 # Update system packages.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 

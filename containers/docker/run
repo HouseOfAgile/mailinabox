@@ -75,6 +75,8 @@ tput setaf 7
 #   see docker/docker#7318
 docker run \
 	-v /dev/urandom:/dev/random \
+	-e PUBLIC_IP=${PUBLIC_IP:-"auto"} \
+	-e PUBLIC_IPV6=${PUBLIC_IPV6:-"auto"} \
 	-p 25:25 \
 	-p 53:53/udp \
 	-p 53:53/tcp \

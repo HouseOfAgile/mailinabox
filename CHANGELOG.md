@@ -1,6 +1,26 @@
 CHANGELOG
 =========
 
+In Development...
+-----------------
+
+Mail:
+
+* The Roundcube vacation_sieve plugin by @arodier is now installed to make it easier to set vacation auto-reply messages from within Roundcube.
+* Authentication-Results headers for DMARC, added in v0.07, were mistakenly added for outbound mail --- that's now removed.
+* The Trash folder is now created automatically for new mail accounts, addressing a Roundcube error.
+
+System:
+
+* Brute-force SSH and IMAP login attempts are now prevented by properly configuring fail2ban.
+* Status checks are run each night and any changes from night to night are emailed to the box administrator (the first user account).
+
+Control panel:
+
+* The new check that system services are running mistakenly checked that the Dovecot Managesieve service is publicly accessible. Although the service binds to the public network interface we don't open the port in ufw. On some machines it seems that ufw blocks the connection from the status checks (which seems correct) and on some machines (mine) it doesn't, which is why I didn't notice the problem.
+* The current backup chain will now try to predict how many days until it is deleted (always at least 3 days after the next full backup).
+* The list of aliases that forward to a user are removed from the Mail Users page because when there are many alises it is slow and times-out.
+
 v0.07 (February 28, 2015)
 -------------------------
 

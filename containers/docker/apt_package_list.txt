@@ -16,6 +16,7 @@ duplicity
 fail2ban
 git
 haveged
+host
 ldnsutils
 libapr1
 libawl-php
